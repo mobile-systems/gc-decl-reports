@@ -7,13 +7,26 @@
 (gnc:module-load "gnucash/html" 0)
 
 (define d:report
-  (lambda (name defs-list title subtitle filter)
+  (lambda (name defs-list title subtitle reportbuilders)
     (let ((options-generator
            (lambda ()
-             (gnc:new-options)))
+             (let ((options (gnc:new-options)))
+               options)))
           (renderer
            (lambda (options)
-             (gnc:make-html-document))))
+             (let ((document (gnc:make-html-document)))
+               (gnc:html-document-set-title! document (_ title))
+               (gnc:html-document-add-object!
+                document
+                (gnc:make-html-text
+                 (gnc:html-markup-h3
+                  (gnc:html-markup/format
+                   (_ subtitle)))))
+               (map
+                (lambda (reportbuilder)
+                  (reportbuilder document options))
+                reportbuilders)
+               document))))
       (gnc:define-report
        'version 1
        'name (N_ title)
@@ -22,6 +35,25 @@
        'renderer renderer))))
 
 (define d:filter-none
-  (lambda () ()))
+  (lambda reportbuilders reportbuilders))
 
-(d:report "income-statement" 0 "Hello, World" "2011-01-01 to 2011-07-31" d:filter-none)
+(define d:p
+  (lambda (text)
+    (lambda (document options)
+      (gnc:html-document-add-object!
+       document
+       (gnc:make-html-text
+        (gnc:html-markup-p
+         (gnc:html-markup/format
+          (_ text))))))))
+
+(d:report
+ "income-statement" ; name
+ 0 ; defs
+ ; Have to keep this title while experimenting in the sample report that
+ ; comes with GnuCash
+ "Hello, World" ; title
+ "2011-01-01 to 2011-07-31" ; subtitle
+ (d:filter-none ; body
+  (d:p "Some text.")
+  (d:p "A little more text.")))
