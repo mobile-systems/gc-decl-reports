@@ -320,10 +320,7 @@ option like this.")
        (gnc:make-html-text         
         (gnc:html-markup-p
          (gnc:html-markup/format
-          (_ "This is a sample GnuCash report. \
-See the guile (scheme) source code in the scm/report directory \
-for details on writing your own reports, \
-or extending existing reports.")))
+          (_ "KILROY WUZ HERE.")))
         (gnc:html-markup-p
          (gnc:html-markup/format
           (_ "For help on writing reports, or to contribute your brand \
