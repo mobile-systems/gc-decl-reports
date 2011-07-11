@@ -96,9 +96,7 @@
                (gnc:html-document-add-object!
                 document
                 (gnc:make-html-text
-                 (gnc:html-markup-h3
-                  (gnc:html-markup/format
-                   (_ subtitle)))))
+                 (gnc:html-markup-h3 (_ subtitle))))
                (map
                 (lambda (reportbuilder)
                   (reportbuilder document options))
