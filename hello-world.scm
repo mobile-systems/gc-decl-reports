@@ -62,18 +62,13 @@
 
 ; d:report - Create a declarative report
 ; Arguments:
-;  name - The name of the report. I don't really have a use for it yet, but
-;  am just trying to get names for all declared objects for future use.
+;  guid - The GUID of the report.
+;
+;  menuitem - The name for the report that will appear in the GnuCash menu.
 ;
 ;  defs - A list of definitions (defs). A def is like an object that is
 ;  accessible throughout the body of the report, and also doubles as
 ;  options in the report's options dialog box.
-;
-;  title - The title of the report. This should appear in the Reports menu
-;  and on the top of the report page.
-;
-;  subtitle - The report subtitle. This should appear right under the
-;  report title.
 ;
 ;  reportbuilders - A list of actions (called reportbuilders) which carry
 ;  out the tasks needed to actually gather the data and generate the HTML
@@ -81,31 +76,30 @@
 ; Returns:
 ;  The generated report.
 (define d:report
-  (lambda (name defs title subtitle reportbuilders)
+  (lambda (guid menuitem defs . reportbuilders)
     (let ((options-generator
            (lambda ()
-             (let ((options (gnc:new-options)))
+             (let ((opts (gnc:new-options)))
                (map
-                (lambda (def) (def options))
+                (lambda (def) (def opts))
                 defs)
-               options)))
+               opts)))
+
           (renderer
-           (lambda (options)
+           (lambda (report-obj)
              (let ((document (gnc:make-html-document)))
-               (gnc:html-document-set-title! document (_ title))
-               (gnc:html-document-add-object!
-                document
-                (gnc:make-html-text
-                 (gnc:html-markup-h3 (_ subtitle))))
                (map
                 (lambda (reportbuilder)
-                  (reportbuilder document options))
+                  (reportbuilder
+                   document
+                   (gnc:report-options report-obj)))
                 reportbuilders)
                document))))
+
       (gnc:define-report
        'version 1
-       'name (N_ title)
-       'report-guid "898d78ec92854402bf76e20a36d24ade"
+       'name (N_ menuitem)
+       'report-guid guid
        'options-generator options-generator
        'renderer renderer))))
 
@@ -130,46 +124,104 @@
         "db" "dc" "de" "df" "dg" "dh" "di" "dj" "dk" "dl" "dm" "dn" "do"
         "dp" "dq" "dr" "ds" "dt" "du" "dv" "dw" "dx" "dy" "dz")))))
 
+; d:def-label - A label definition
+; Arguments:
+;  page - The name of the page (tab) in the report options dialog box on
+;  which this option will appear.
+;
+;  name - The name of the option that will appear on the report options
+;  dialog box.
+;
+;  val - The value being given to the option.
+; Returns:
+;  A label definition function that takes a positioning word as its
+;  argument.
+(define d:def-label
+  (lambda (page name val)
+    (lambda (pos)
+      (lambda (opts)
+        (gnc:register-option
+         opts
+         (gnc:make-string-option page name pos name val))))))
+
 ; d:def-date - A date definition
 ; Arguments:
-;  name - The name of this date def
+;  page - The name of the page (tab) in the report options dialog box on
+;  which this option will appear.
 ;
-;  title - The title of this date def in the form of "Pagename/Widgetname"
-;  where Pagename is the page (tab) in the options dialog box where the def
-;  will be placed in the form of an option, and Widgetname is the name the
-;  option will be given on the dialog box.
+;  name - The name of the option that will appear on the report options
+;  dialog box.
 ;
-;  date-str - A date string in the form 2011-12-31.
+;  val - The value being given to the option, in the form of a string like
+;  "2011-12-31".
 ; Returns:
-;  A date definition function that takes a positioning character "a"-"z" as
-;  its argument.
+;  A date definition function that takes a positioning word as its argument.
 (define d:def-date
-  (lambda (name title date-str)
+  (lambda (page name val)
     (lambda (pos)
-      (lambda (options)
-        (let* ((name-split (split-on #\/ title))
-               (pagename (N_ (car name-split)))
-               (widgetname (N_ (cadr name-split))))
-          (gnc:register-option
-           options
-           (gnc:make-date-option
-            pagename
-            widgetname
-            pos
-            widgetname
-            (lambda ()
-              (cons 'absolute
-                    (cons (car (mktime (car (strptime "%Y-%m-%d" date-str)))) 0)))
-            #f
-            'absolute #f)))))))
+      (lambda (opts)
+        (gnc:register-option
+         opts
+         (gnc:make-date-option
+          page
+          name
+          pos
+          name
+          (lambda ()
+            (cons
+             'absolute
+             (cons (car (mktime (car (strptime "%Y-%m-%d" val)))) 0)))
+          #f
+          'absolute #f))))))
 
-; d:filter-none - A top-level filter which doesn't filter any of the data
+; di:get-option-value - A generic option getter helper function
 ; Arguments:
-;  reportbuilders - A list of reportbuilders.
+;  opts - The options object.
+;
+;  page - The page (tab) in the options dialog box on which the option is
+;  located.
+;
+;  name - The name of the option.
 ; Returns:
-;  reportbuilders.
-(define d:filter-none
-  (lambda reportbuilders reportbuilders))
+;  The value of the option.
+(define di:get-option-value
+  (lambda (opts page name)
+    (gnc:option-value
+     (gnc:lookup-option opts page name))))
+
+; d:label - A getter for the value of a label def
+; Arguments:
+;  page - The page (tab) in the options dialog box on which the option is
+;  located.
+;
+;  name - The name of the option.
+; Returns:
+;  A reportbuilder (function) that gets the label value.
+(define d:label
+  (lambda (page name)
+    (lambda (document opts)
+      (di:get-option-value opts page name))))
+
+; di:put-text - A helper function add text markup to the report's HTML
+; document
+; Arguments:
+;  text - The text to add to the document.
+;
+;  markup-func - The function for the kind of markup to add
+;  (e.g. gnc:html-markup-h3)
+;
+;  document - The HTML document to add to.
+;
+;  opts - The report options object.
+; Returns:
+;  Nothing.
+(define di:put-text
+  (lambda (text markup-func document opts)
+    (gnc:html-document-add-object!
+     document
+     (gnc:make-html-text
+      (markup-func
+       (_ (if (procedure? text) (text document opts) text)))))))
 
 ; d:p - Generate a paragraph reportbuilder
 ; Arguments:
@@ -179,22 +231,43 @@
 ;  adds an HTML paragraph to the report page.
 (define d:p
   (lambda (text)
-    (lambda (document options)
-      (gnc:html-document-add-object!
+    (lambda (document opts)
+      (di:put-text text gnc:html-markup-p document opts))))
+
+; d:title - Set the report title visible on the page
+; Arguments:
+;  text - A string or D:LABEL value that contains the title to set.
+; Returns:
+;  A reportbuilder that takes the report document and options objects and
+;  sets the document title on the page.
+(define d:title
+  (lambda (text)
+    (lambda (document opts)
+      (gnc:html-document-set-title!
        document
-       (gnc:make-html-text
-        (gnc:html-markup-p
-          (_ text)))))))
+       (_ (if (procedure? text) (text document opts) text))))))
+
+; d:subtitle - Set the report title visible on the page
+; Arguments:
+;  text - A string or D:LABEL value that contains the subtitle to set.
+; Returns:
+;  A reportbuilder that takes the report document and options objects and
+;  sets the document subtitle on the page.
+(define d:subtitle
+  (lambda (text)
+    (lambda (document opts)
+      (di:put-text text gnc:html-markup-h3 document opts))))
 
 (d:report
- "income-statement" ; name
+ "decafbad"
+ "Declarative Report"
  (d:defs
-   (d:def-date "start-date" "General/Start date" "2011-01-01")
-   (d:def-date "end-date" "General/End date" "2011-07-31"))
- ; Have to keep this title while experimenting in the sample report that
- ; comes with GnuCash
- "Hello, World" ; title
- "2011-01-01 to 2011-07-31" ; subtitle
- (d:filter-none ; body
-  (d:p "Some text.")
-  (d:p "A little more text.")))
+   (d:def-label "General" "Report title" "Declarative Report")
+   (d:def-label "General" "Report subtitle" "2011-01-01 to 2011-07-31")
+   (d:def-date "General" "Start date" "2011-01-01")
+   (d:def-date "General" "End date" "2011-07-31"))
+
+ (d:title (d:label "General" "Report title"))
+ (d:subtitle (d:label "General" "Report subtitle"))
+ (d:p "Some text.")
+ (d:p "A little more text."))
