@@ -104,7 +104,9 @@
        'renderer renderer))))
 
 ; d:defs - Tells options defs where they will be placed on the report
-; options dialog box.
+; options dialog box. The lambda passed to the map function takes two
+; arguments, so the map function itself takes two lists (the defs and the
+; list of positioning characters).
 ; Arguments:
 ;  defs - A list of defs like date defs, account defs, etc.
 ; Returns:
