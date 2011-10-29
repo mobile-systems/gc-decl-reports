@@ -265,7 +265,11 @@
  "Declarative Report"
  (d:defs
    (d:def-label "General" "Report title" "Declarative Report")
-   (d:def-label "General" "Report subtitle" "2011-01-01 to 2011-07-31")
+   (d:def-label "General" "Report subtitle"
+                (string-append
+                 "2011-01-01"
+                 " to "
+                 "2011-07-31"))
    (d:def-date "General" "Start date" "2011-01-01")
    (d:def-date "General" "End date" "2011-07-31"))
 
