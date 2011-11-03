@@ -176,6 +176,41 @@
           #f
           'absolute #f))))))
 
+; d:def-account-group - An account group definition
+; Arguments:
+;  page - The name of the page (tab) in the report options dialog box on
+;  which this option will appear.
+;
+;  name - The name of the option that will appear on the report options
+;  dialog box.
+;
+;  account-guids - Arbitrary number of strings containing account GUIDs. The
+;  Account objects will be looked up and selected by default in the account
+;  list widget in the options dialog box.
+; Returns:
+;  An account group  definition function that takes a positioning word as
+;  its argument.
+(define d:def-account-group
+  (lambda (page name . account-guids)
+    (lambda (pos)
+      (lambda (opts)
+        (gnc:register-option
+         opts
+         (gnc:make-account-list-option
+          page
+          name
+          pos
+          name
+          (lambda ()
+            (map
+             (lambda (account-guid)
+               (xaccAccountLookup
+                account-guid
+                (gnc-get-current-book)))
+             account-guids))
+          #f
+          #t))))))
+
 ; di:get-option-value - A generic option getter helper function
 ; Arguments:
 ;  opts - The options object.
@@ -271,7 +306,49 @@
                  " to "
                  "2011-07-31"))
    (d:def-date "General" "Start date" "2011-01-01")
-   (d:def-date "General" "End date" "2011-07-31"))
+   (d:def-date "General" "End date" "2011-07-31")
+   (d:def-account-group "Account Groups" "Income Accounts"
+                        "3288757aa761c7bba993766bfb433466"
+                        "e49c976843a1dba40570ed6295e89a33"
+                        "90d5b9035aa48a78e6584b77a44406b4"
+                        "fd38199026670043e1b534823589cde0")
+   (d:def-account-group "Account Groups" "Expense Accounts"
+                        "df72fb29f46e90e12c2ba10d582a6148"
+                        "e518845492b7b9cfa614cc405a8cf715"
+                        "1ff6aa53c16083141d2e8f94ee06b9af"
+                        "abedd60f6f23f7544ba336007cb1d7cd"
+                        "7ae9864e5cf38ab3dad493ba22665a5a"
+                        "7bb4442daabd2152560feb9b0d80c275"
+                        "39655393f9a3d5140d522203d5dc0084"
+                        "0567c7b48dbc171b247316f212c30d8b"
+                        "bb5937c9397cde23b0ceab3498c7fc23"
+                        "7181899d1a563e107f6817a41a60fe87"
+                        "61c43be7097840fb64a34483969a2705"
+                        "9eb841fd996ce94143215b1c7a02bf1f"
+                        "ab3957aceb9cac4365f31fa58a20e42e"
+                        "03cd0b3bf985a4057ddb4bc0c6fa33df"
+                        "8604c0e2730314e3602cfb764f93397f"
+                        "39b0dbead49d5f6b463006d54eb1305a"
+                        "8fbd8636160210db8c139df1d3b70d27"
+                        "c70c5934df7a2db15caf36dd9da6dbc3"
+                        "0ca78dd5125ca2f0c9cb3b3ffb8b1ad3"
+                        "0d79529f99230620bff72b26e685e6b1"
+                        "85f90c79b26a7a82f6387dbaf184840f"
+                        "4920ef5a601b8dc41a09eed0af9bf960"
+                        "5fbf74bf49ecd371092b5b4918047332"
+                        "eaa862a0bac6632aa8fefcf7cd59455e"
+                        "97b973a463e09fad41b5f033c6b1f1bd"
+                        "466f6a4b3466f863e85187569050c39c"
+                        "02e4d83288fd7c024bbf9f1883ae53a3"
+                        "7ed651c57b8532acafc9eed8a6379502"
+                        "286b745f1eddf7bd2ccf3ba957c73b5d"
+                        "24119c9309714ec8c21b071c3e47c5fb"
+                        "86a56b49024ff08548ee150642484a4a"
+                        "65529b88a6c92a6b6b841d95fbc2525b"
+                        "4fb1db5436df3a5dc88704e49b59de0d")
+   (d:def-account-group "Account Groups" "Liability Accounts"
+                        "1f117de75c9c87fac121f214b27b37b9"
+                        "8c582d38860b41e085a4683b9b6076f2"))
 
  (d:title (d:label "General" "Report title"))
  (d:subtitle (d:label "General" "Report subtitle"))
