@@ -80,20 +80,18 @@
     (let ((options-generator
            (lambda ()
              (let ((opts (gnc:new-options)))
-               (map
-                (lambda (def) (def opts))
-                defs)
+               (map (lambda (def) (def opts))
+                    defs)
                opts)))
 
           (renderer
            (lambda (report-obj)
              (let ((document (gnc:make-html-document)))
-               (map
-                (lambda (reportbuilder)
-                  (reportbuilder
-                   document
-                   (gnc:report-options report-obj)))
-                reportbuilders)
+               (map (lambda (reportbuilder)
+                      (reportbuilder
+                       document
+                       (gnc:report-options report-obj)))
+                    reportbuilders)
                document))))
 
       (gnc:define-report
@@ -116,15 +114,14 @@
 ;  where they are fed in as the defs argument).
 (define d:defs
   (lambda defs
-    (map
-     (lambda (def pos) (def pos))
-     defs
-     (take
-      (length defs)
-      '("ca" "cb" "cc" "cd" "ce" "cf" "cg" "ch" "ci" "cj" "ck" "cl" "cm"
-        "cn" "co" "cp" "cq" "cr" "cs" "ct" "cu" "cv" "cx" "cy" "cz" "da"
-        "db" "dc" "de" "df" "dg" "dh" "di" "dj" "dk" "dl" "dm" "dn" "do"
-        "dp" "dq" "dr" "ds" "dt" "du" "dv" "dw" "dx" "dy" "dz")))))
+    (map (lambda (def pos) (def pos))
+         defs
+         (take
+          (length defs)
+          '("ca" "cb" "cc" "cd" "ce" "cf" "cg" "ch" "ci" "cj" "ck" "cl" "cm"
+            "cn" "co" "cp" "cq" "cr" "cs" "ct" "cu" "cv" "cx" "cy" "cz" "da"
+            "db" "dc" "de" "df" "dg" "dh" "di" "dj" "dk" "dl" "dm" "dn" "do"
+            "dp" "dq" "dr" "ds" "dt" "du" "dv" "dw" "dx" "dy" "dz")))))
 
 ; d:def-label - A label definition
 ; Arguments:
@@ -170,9 +167,8 @@
           pos
           name
           (lambda ()
-            (cons
-             'absolute
-             (cons (car (mktime (car (strptime "%Y-%m-%d" val)))) 0)))
+            (cons 'absolute
+                  (cons (car (mktime (car (strptime "%Y-%m-%d" val)))) 0)))
           #f
           'absolute #f))))))
 
@@ -202,12 +198,11 @@
           pos
           name
           (lambda ()
-            (map
-             (lambda (account-guid)
-               (xaccAccountLookup
-                account-guid
-                (gnc-get-current-book)))
-             account-guids))
+            (map (lambda (account-guid)
+                   (xaccAccountLookup
+                    account-guid
+                    (gnc-get-current-book)))
+                 account-guids))
           #f
           #t))))))
 
