@@ -141,16 +141,16 @@
 ;  mm - The month (1 is January, 12 is December).
 ;
 ;  dd = The day of the month (1 to 31).
-;
-;  val - The value being given to the option, in the form of a string like
-;  "2011-12-31".
 ; Returns:
 ;  A date definition function that takes a positioning word as its argument.
-(define (d:def-date page name val)
+(define (d:def-date page name yyyy mm dd)
+  (define dt (localtime 0))
+  (set-tm:year dt (- yyyy 1900))
+  (set-tm:mon dt (- mm 1))
+  (set-tm:mday dt dd)
+
   (lambda (pos)
     (lambda (opts)
-      (define dt
-        (cons (car (mktime (string->date val "~Y-~m-~d"))) 0))
       (gnc:register-option
         opts
         (gnc:make-date-option
@@ -158,7 +158,7 @@
           name
           pos
           name
-          (lambda () (cons 'absolute dt))
+          (lambda () (cons 'absolute (cons (car (mktime dt)) 0)))
           #f
           'absolute
           #f)))))
@@ -284,8 +284,8 @@
     (d:def-label "General" "Report title" report-name)
     (d:def-label "General" "Report subtitle"
       (string-append "2011-01-01" " to " "2011-07-31"))
-    (d:def-date "General" "Start date" "2011-01-01")
-    (d:def-date "General" "End date" "2011-07-31")
+    (d:def-date "General" "Start date" 2011 1 1)
+    (d:def-date "General" "End date" 2011 7 31)
     (d:def-account-group "Account Groups" "Income Accounts"
       "3288757aa761c7bba993766bfb433466"
       "e49c976843a1dba40570ed6295e89a33"

@@ -16,10 +16,3 @@ The report will be visible with the next restart of GnuCash as the
 `Reports > Sample & Custom > GnuCash Declarative Reports - Test` menu
 item.
 
-## Status
-
-Currently the report will load and display an error. This is happening
-because I haven't yet figured out how to parse a date string in Scheme
-code into a date format that GnuCash's report options object will
-accept. Work ongoing....
-
